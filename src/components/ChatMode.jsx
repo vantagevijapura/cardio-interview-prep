@@ -40,7 +40,7 @@ export default function ChatMode() {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = Math.min(
         textareaRef.current.scrollHeight,
-        300
+        200
       ) + "px";
     }
   }, [userAnswer]);
@@ -92,129 +92,170 @@ export default function ChatMode() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 md:p-8">
-      <div className="space-y-6">
-        {/* Category Pills */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
-                category === cat
-                  ? "bg-blue-600 text-white shadow-lg scale-105"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
-            >
-              {CATEGORY_LABELS[cat]}
-            </button>
-          ))}
+    <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col">
+      {/* Header with Categories */}
+      <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 py-4">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleCategoryChange(cat)}
+                className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+                  category === cat
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {CATEGORY_LABELS[cat]}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {/* Conversation Container */}
-        <div className="space-y-6">
-          {/* AI Question */}
-          <div className="flex justify-start">
-            <div className="max-w-2xl bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-6 py-4">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+      {/* Main Chat Area */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Question Card */}
+          <div
+            className="animate-fadeIn opacity-0 animation-delay-0"
+            style={{
+              animation: "fadeInUp 0.6s ease-out forwards",
+            }}
+          >
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 md:p-8 border border-slate-200 dark:border-slate-700">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">
                 Interview Question
               </p>
-              <p className="text-lg text-gray-900 dark:text-white font-medium leading-relaxed">
-                {currentQuestion || "Loading..."}
+              <p className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-white leading-relaxed">
+                {currentQuestion || "Loading question..."}
               </p>
             </div>
           </div>
 
-          {/* User Answer */}
-          {userAnswer && !feedback && (
-            <div className="flex justify-end">
-              <div className="max-w-2xl bg-blue-600 rounded-2xl rounded-tr-none px-6 py-4">
+          {/* User Answer Bubble */}
+          {userAnswer && !feedback && !loading && (
+            <div
+              className="flex justify-end"
+              style={{
+                animation: "fadeInUp 0.4s ease-out forwards",
+              }}
+            >
+              <div className="max-w-2xl bg-blue-600 dark:bg-blue-700 rounded-2xl rounded-tr-none px-6 py-4 shadow-sm">
                 <p className="text-white leading-relaxed">{userAnswer}</p>
-              </div>
-            </div>
-          )}
-
-          {/* AI Feedback */}
-          {feedback && (
-            <div className="flex justify-start">
-              <div className="w-full">
-                <FeedbackCard feedback={feedback} />
               </div>
             </div>
           )}
 
           {/* Loading State */}
           {loading && (
-            <div className="flex justify-start">
-              <div className="max-w-2xl bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
-                  <span className="text-gray-600 dark:text-gray-300 text-sm ml-2">
-                    Analyzing your response...
+            <div
+              className="flex justify-start"
+              style={{
+                animation: "fadeInUp 0.4s ease-out forwards",
+              }}
+            >
+              <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-none px-6 py-4 shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1">
+                    <div
+                      className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"
+                      style={{
+                        animation: "pulse 1.5s ease-in-out infinite",
+                      }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"
+                      style={{
+                        animation: "pulse 1.5s ease-in-out infinite 0.2s",
+                      }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"
+                      style={{
+                        animation: "pulse 1.5s ease-in-out infinite 0.4s",
+                      }}
+                    ></div>
+                  </div>
+                  <span className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                    Coach is reviewing your answer...
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Error */}
+          {/* Feedback Card */}
+          {feedback && (
+            <div
+              style={{
+                animation: "fadeInUp 0.6s ease-out forwards",
+              }}
+            >
+              <FeedbackCard feedback={feedback} />
+            </div>
+          )}
+
+          {/* Error State */}
           {error && (
-            <div className="flex justify-start">
-              <div className="max-w-2xl bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-2xl rounded-tl-none px-6 py-4">
+            <div
+              className="flex justify-start"
+              style={{
+                animation: "fadeInUp 0.4s ease-out forwards",
+              }}
+            >
+              <div className="max-w-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl rounded-tl-none px-6 py-4">
                 <p className="text-red-800 dark:text-red-200 text-sm font-medium">
                   {error}
-                </p>
-                <p className="text-red-700 dark:text-red-300 text-xs mt-2">
-                  (Make sure this app is deployed to Cloudflare Pages for AI
-                  feedback)
                 </p>
               </div>
             </div>
           )}
         </div>
+      </div>
 
-        {/* Input Area */}
-        <div className="sticky bottom-0 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent pt-4">
+      {/* Input Area - Fixed at Bottom */}
+      <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm sticky bottom-0">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 py-6">
           {!feedback ? (
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
                 <textarea
                   ref={textareaRef}
                   value={userAnswer}
                   onChange={(e) => setUserAnswer(e.target.value)}
-                  placeholder="Type your answer here..."
-                  className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none max-h-48 min-h-12 transition-all"
+                  placeholder="Share your answer here..."
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-20 max-h-32 transition-all duration-200"
                   disabled={loading}
                 />
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex gap-3 justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     setUserAnswer("");
                     handleNextQuestion();
                   }}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
                   disabled={loading}
+                  className="px-5 py-2.5 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Skip
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !userAnswer.trim()}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-slate-400 disabled:to-slate-400 text-white font-semibold rounded-lg transition-all duration-200 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                 >
-                  {loading ? "Analyzing..." : "Submit"}
+                  {loading ? "Analyzing..." : "Submit Answer"}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="flex gap-2 justify-end">
+            <div className="flex justify-end">
               <button
                 onClick={handleNextQuestion}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Next Question
               </button>
@@ -222,6 +263,19 @@ export default function ChatMode() {
           )}
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

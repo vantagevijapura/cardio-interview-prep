@@ -33,27 +33,46 @@ export async function onRequest(context) {
     let userPrompt = "";
 
     if (mode === "chat") {
-      systemPrompt = `You are an expert cardiology fellowship interview coach. Your role is to provide constructive, actionable feedback on interview responses. Focus on clarity, specificity, professionalism, and demonstrating genuine interest in cardiology.
+      systemPrompt = `You are a Program Director at a top-tier academic cardiology fellowship evaluating fellowship interview candidates. You expect depth, clinical maturity, and clear vision.
 
-Evaluate the response and provide feedback in this JSON format:
-{
-  "clarityScore": <1-10>,
-  "directnessScore": <1-10>,
-  "specificityScore": <1-10>,
-  "professionalismScore": <1-10>,
-  "strengths": "<2-3 key things they did well>",
-  "growthAreas": "<2-3 specific suggestions for improvement>",
-  "followUpQuestion": "<One probing follow-up question a real interviewer might ask>"
-}
+SCORING (1-10 scale):
+- Clarity: Is it articulate, well-structured, easy to follow? Can a busy physician grasp it in 30 seconds?
+- Directness: Does it answer decisively without rambling? Top candidates are concise and purposeful.
+- Specificity: Does it include concrete clinical examples, specific knowledge, or measurable accomplishments?
+- Professionalism: Does the tone reflect maturity, genuine expertise, appropriate confidence, and humility?
 
-Be encouraging but honest. Focus on specificity and concrete examples.`;
+FEEDBACK REQUIREMENTS - Be thorough and actionable:
 
-      userPrompt = `Interview Question Category: ${category}
+For "strengths": List 1-2 specific things the candidate did well. Be honest but constructive.
+
+For "growthAreas": Provide:
+1. Specific issues (what's missing or weak)
+2. Why it matters (how this affects their competitiveness)
+3. Concrete framework/example of how to improve (e.g., "Strong answers include: [specific case] → [what you learned] → [how you'll apply this in fellowship]")
+4. Typical interviewer follow-ups (what they'll probe on)
+
+For "refinedAnswer": Take the candidate's actual input and elevate it into an excellent answer. Show them what a strong candidate would say by:
+1. Keeping their core idea/experience
+2. Adding structure (trigger → evidence → vision)
+3. Including specific clinical/professional details
+4. Demonstrating reflection and growth
+5. Connecting to fellowship goals
+
+Provide the feedback as a JSON object with these fields:
+- clarityScore (integer 1-10)
+- directnessScore (integer 1-10)
+- specificityScore (integer 1-10)
+- professionalismScore (integer 1-10)
+- strengths (string: 1-2 specific strengths)
+- growthAreas (string: detailed feedback organized by issues, why it matters, how to improve)
+- refinedAnswer (string: elevated version of their answer)`;
+
+      userPrompt = `Question Category: ${category}
 Question: "${question}"
 
-The candidate's answer: "${userAnswer}"
+Candidate's Response: "${userAnswer}"
 
-Provide structured feedback on this answer.`;
+Evaluate this response thoroughly.`;
     } else if (mode === "quiz") {
       systemPrompt = `You are a cardiology fellowship interview quiz coach. A candidate answered a multiple-choice question. Provide brief, encouraging feedback.
 
@@ -71,23 +90,54 @@ User's answer: ${userAnswer}
 Provide feedback.`;
     }
 
-    // Call Cloudflare Workers AI with GLM flash
-    const response = await context.env.AI.run("@cf/zai-org/glm-4.7-flash", {
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
+    // Call OpenAI API with GPT-5.4-nano
+    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${context.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-5.4-nano",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_completion_tokens: 500,
+        response_format: { type: "json_object" },
+      }),
     });
 
-    // Parse the response
+    if (!openaiResponse.ok) {
+      const errorData = await openaiResponse.json();
+      console.error("OpenAI error response:", JSON.stringify(errorData));
+      throw new Error(`OpenAI API error: ${openaiResponse.status} ${JSON.stringify(errorData.error)}`);
+    }
+
+    const response = await openaiResponse.json();
+
+    console.log("OpenAI response structure:", JSON.stringify({
+      hasChoices: !!response.choices,
+      choicesLength: response.choices?.length,
+      messageContent: response.choices?.[0]?.message?.content?.substring(0, 100),
+    }));
+
+    // Parse the OpenAI response (should be valid JSON due to response_format)
     let feedback;
     try {
-      const content = response.response || response.text || response;
-      // Extract JSON from response if it's wrapped in text
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      feedback = jsonMatch ? JSON.parse(jsonMatch[0]) : { raw: content };
+      const content = response.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new Error("No content in OpenAI response");
+      }
+
+      // Try to parse directly
+      feedback = JSON.parse(content);
+      console.log("Successfully parsed feedback");
     } catch (e) {
-      feedback = { raw: response.response || response.text || response };
+      console.error("Parse error:", e.message);
+      console.error("Content preview:", response.choices?.[0]?.message?.content?.substring(0, 200));
+      feedback = { raw: response.choices?.[0]?.message?.content || "Error parsing response" };
     }
 
     return new Response(JSON.stringify(feedback), {

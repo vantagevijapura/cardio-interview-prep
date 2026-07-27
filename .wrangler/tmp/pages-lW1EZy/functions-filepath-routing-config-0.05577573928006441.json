@@ -1,0 +1,13 @@
+{
+  "routes": [
+    {
+      "routePath": "/api/coach",
+      "mountPath": "/api",
+      "method": "",
+      "module": [
+        "api/coach.js:onRequest"
+      ]
+    }
+  ],
+  "baseURL": "/"
+}
