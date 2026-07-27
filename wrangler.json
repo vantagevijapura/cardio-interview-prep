@@ -1,24 +1,4 @@
 {
   "name": "cardio-interview-prep",
-  "type": "javascript",
-  "main": "src/index.js",
-  "compatibility_date": "2024-12-16",
-  "env": {
-    "production": {
-      "routes": [
-        {
-          "pattern": "cardio-interview-prep.pages.dev/*",
-          "zone_name": "pages.dev"
-        }
-      ]
-    }
-  },
-  "ai": {
-    "binding": "AI"
-  },
-  "build": {
-    "command": "npm run build",
-    "cwd": "./",
-    "root": "."
-  }
+  "compatibility_date": "2024-12-16"
 }
