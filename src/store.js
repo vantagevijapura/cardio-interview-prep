@@ -76,33 +76,6 @@ export const useInterviewStore = create((set) => ({
 }));
 
 export const NOTECARDS = {
-  fellowshipFacts: [
-    {
-      id: "fact-1",
-      front: "What is the match rate for cardiology fellowship?",
-      back: "Approximately 65-66%, meaning roughly one-third of applicants do not match.",
-      category: "fellowshipFacts",
-    },
-    {
-      id: "fact-2",
-      front:
-        "How much do research publications impact matching odds to cardiology fellowship?",
-      back: "Applicants with 3+ publications during residency have roughly 4.5× higher odds of matching compared to those with none.",
-      category: "fellowshipFacts",
-    },
-    {
-      id: "fact-3",
-      front: "Which exam score matters more for cardiology: Step 1 or Step 2?",
-      back: "Step 2 CK trends and cardiology-specific ITE percentile scores carry more weight than Step 1 in matching outcomes.",
-      category: "fellowshipFacts",
-    },
-    {
-      id: "fact-4",
-      front: "When does ERAS typically open for cardiology fellowship?",
-      back: "Early June, with applications typically submitted starting July 1, interviews running August-November.",
-      category: "fellowshipFacts",
-    },
-  ],
   researchTalking: [
     {
       id: "research-1",
